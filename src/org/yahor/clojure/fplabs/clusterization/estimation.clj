@@ -3,11 +3,28 @@
   (:require [clojure.java.io :as io])
   (:require [clojure.string :as str]))
 
+(defn coefficient
+  [radius]
+  (/ 4 (Math/pow radius 2)))
+
+(defn distance
+  [point1 point2]
+  (Math/pow (reduce + (into [] (map #(Math/pow (- %1 %2) 2) point1 point2))) 0.5))
+
+(defn sub-potential
+  [x1 x2 coeff]
+  (Math/pow Math/E (* (- coeff) (Math/pow (distance x1 x2) 2))))
+
+(defn potential
+  [points i alfa]
+  (def xi (nth points i))
+  (reduce + (for [xj points] (sub-potential xi xj alfa))))
+
 (defn record
   "Slits the string by comma and creates the vector of splitted values"
   [line colsrange]
   (def splitted (str/split line #","))
-  (doall (map read-string (for [i colsrange] (nth splitted i)))))
+  (doall (map read-string (into [] (for [i colsrange] (nth splitted i))))))
 
 (defn get-data
   "Reads data from file and returns list of records with their characteristics"
