@@ -25,10 +25,15 @@
 
 (deftest test-distance
   (testing "Distance between 2 points"
-    (is (= (Math/round (* 1000000 (distance [(- 2.3) 4] [8.5 0.7])))
+    (is (= (Math/round (* 1000000 (distance [-2.3 4] [8.5 0.7])))
            11292918))))
 
 (deftest check-sub-potential
   (testing "Checking formula e ^ (-a * ||xi - xj|| ^ 2)"
-    (is (= (Math/round (* (sub-potential [(- 2.3) 4] [8.5 0.7] 0.5) (Math/pow 10 34)))
+    (is (= (Math/round (* (sub-potential [-2.3 4] [8.5 0.7] 0.5) (Math/pow 10 34)))
            2028674))))
+
+(deftest check-potential
+  (testing "Checking computing of potential of the 0-th point"
+    (is (= (Math/round (* 1000000 (potential '([1 3] [-2 4] [0 2]) 0 0.5)))
+           1374617))))
