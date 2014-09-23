@@ -34,6 +34,16 @@
            2028674))))
 
 (deftest check-potential
+  (def points '([1 3] [-2 4] [0 2]))
   (testing "Checking computing of potential of the 0-th point"
-    (is (= (Math/round (* 1000000 (potential '([1 3] [-2 4] [0 2]) 0 0.5)))
+    (is (= (Math/round (* 1000000 (potential points (first points) 0.5)))
            1374617))))
+
+(deftest check-potential-revising
+  (def alfa 0.5)
+  (def beta (* alfa 1.5))
+  (def points '([1 3] [-2 4] [0 2]))
+  (def potentials (compute-potentials points alfa))
+  (testing "Checking if given potential is revisied correctly"
+    (is (= (Math/round (* 1000000 (revise-potential (first potentials) (last potentials) beta)))
+           1065315))))
