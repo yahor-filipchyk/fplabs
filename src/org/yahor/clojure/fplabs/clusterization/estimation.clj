@@ -16,9 +16,20 @@
   (Math/pow Math/E (* (- coeff) (Math/pow (distance x1 x2) 2))))
 
 (defn potential
-  [points i alfa]
-  (def xi (nth points i))
+  [points xi alfa]
   (reduce + (for [xj points] (sub-potential xi xj alfa))))
+
+(defn compute-potentials
+  [points alfa]
+  (map #(vector % (potential points % alfa)) points))
+
+(defn revise-potential
+  [Pi Phighest beta]
+  (- (nth Pi 1) (* (nth Phighest 1) (sub-potential (first Pi) (first Phighest) beta))))
+
+(defn revise-potentials
+  [potentials highest beta]
+  (map #(vector (nth % 0) (revise-potential % highest beta)) potentials))
 
 (defn record
   "Slits the string by comma and creates the vector of splitted values"
