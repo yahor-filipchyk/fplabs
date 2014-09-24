@@ -3,6 +3,9 @@
   (:require [clojure.java.io :as io])
   (:require [clojure.string :as str]))
 
+(def eps-upper 0.5)
+(def eps-lower 0.15)
+
 (defn coefficient
   [radius]
   (/ 4 (Math/pow radius 2)))
@@ -30,6 +33,19 @@
 (defn revise-potentials
   [potentials highest beta]
   (map #(vector (nth % 0) (revise-potential % highest beta)) potentials))
+
+(defn max-potential
+  [potentials]
+  (reduce
+    (fn [p1 p2]
+      (if (> (last p1) (last p2))
+        p1
+        p2)) potentials))
+
+(defn estimate
+  [points rad-a]
+  (let [potentials (compute-potentials points (coefficient rad-a))
+        highets (max-potential potentials)]))
 
 (defn record
   "Slits the string by comma and creates the vector of splitted values"
