@@ -1,6 +1,6 @@
 (ns org.yahor.clojure.fplabs.test.core
-  (:use [org.yahor.clojure.fplabs.clusterization.estimation])
-  (:use [clojure.test])
+  (:use [org.yahor.clojure.fplabs.clusterization.estimation]
+        [clojure.test])
   (:require [clojure.java.io :as io]))
 
 (deftest split-string
@@ -34,16 +34,16 @@
            2028674))))
 
 (deftest check-potential
-  (def points '([(1 3) "a"] [(-2 4) "b"] [(0 2) "c"]))
-  (testing "Checking computing of potential of the 0-th point"
-    (is (= (Math/round (* 1000000 (potential points (first (first points)) 0.5)))
-           1374617))))
+  (let [points '([(1 3) "a"] [(-2 4) "b"] [(0 2) "c"])]
+    (testing "Checking computing of potential of the 0-th point"
+      (is (= (Math/round (* 1000000 (potential points (first (first points)) 0.5)))
+             1374617)))))
 
 (deftest check-potential-revising
-  (def alfa 0.5)
-  (def beta (* alfa 1.5))
-  (def points '([(1 3) "a"] [(-2 4) "b"] [(0 2) "c"]))
-  (def potentials (compute-potentials points alfa))
-  (testing "Checking if given potential is revisied correctly"
-    (is (= (Math/round (* 1000000 (revise-potential (first potentials) (last potentials) beta)))
-           1065315))))
+  (let [alfa 0.5
+        beta (* alfa 1.5)
+        points '([(1 3) "a"] [(-2 4) "b"] [(0 2) "c"])
+        potentials (compute-potentials points alfa)]
+    (testing "Checking if given potential is revisied correctly"
+      (is (= (Math/round (* 1000000 (revise-potential (first potentials) (last potentials) beta)))
+             1065315)))))
