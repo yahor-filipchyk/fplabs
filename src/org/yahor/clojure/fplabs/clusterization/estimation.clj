@@ -10,34 +10,38 @@
   [radius]
   (/ 4 (Math/pow radius 2)))
 
-(defn distance
+(defn euclidean-distance
   [point1 point2]
   (Math/pow (reduce + (into [] (map #(Math/pow (- %1 %2) 2) point1 point2))) 0.5))
 
+(defn hamming-distance
+  [point1 point2]
+  (reduce + (into [] (map #(Math/abs (- %1 %2)) point1 point2))))
+
 (defn sub-potential
-  [x1 x2 coeff]
+  [x1 x2 coeff distance]
   (Math/pow Math/E (* (- coeff) (Math/pow (distance x1 x2) 2))))
 
 (defn potential
-  [points xi alfa]
-  (reduce + (for [xj points] (sub-potential xi (first xj) alfa))))
+  [points xi alfa distance]
+  (reduce + (for [xj points] (sub-potential xi (first xj) alfa distance))))
 
 (defn compute-potentials
-  [points alfa]
-  (doall (map #(vector % (potential points (first %) alfa)) points)))
+  [points alfa distance]
+  (doall (map #(vector % (potential points (first %) alfa distance)) points)))
 
 (defn revise-potential
   "Revise a single potential and returns revised potential"
-  [Pi Phighest beta]
+  [Pi Phighest beta distance]
   ;(println Pi Phighest)
   (-
     (nth Pi 1)
-    (* (peek Phighest) (sub-potential (first (first Pi)) (first (first Phighest)) beta))))
+    (* (peek Phighest) (sub-potential (first (first Pi)) (first (first Phighest)) beta distance))))
 
 (defn revise-potentials
   "Returns vector of revised potentials"
-  [potentials highest beta]
-  (doall (map #(vector (first %) (revise-potential % highest beta)) potentials)))
+  [potentials highest beta distance]
+  (doall (map #(vector (first %) (revise-potential % highest beta distance)) potentials)))
 
 (defn max-potential
   [potentials]
@@ -59,11 +63,11 @@
           (recur (inc i) pos (rest points) max))))))
 
 (defn d-min
-  [Pk centers]
+  [Pk centers distance]
   (reduce min (doall (map #(distance (first (first Pk)) (first (first %))) centers))))
 
 (defn do-estimation
-  [Pk-with-pos P1 potentials rad-a already-found]
+  [Pk-with-pos P1 potentials rad-a already-found distance]
   (let [Pk (first Pk-with-pos)
         Pk-potential (peek Pk)
         P1-potential (peek P1)
@@ -71,40 +75,44 @@
   ;(println "Pk " Pk " rad-a " rad-a " found: " already-found)
     (if (> Pk-potential (* eps-upper P1-potential))
       (recur
-         (max-potential (revise-potentials potentials Pk coeff-b))
+         (max-potential (revise-potentials potentials Pk coeff-b distance))
          P1
-         (revise-potentials potentials Pk coeff-b)
+         (revise-potentials potentials Pk coeff-b distance)
          rad-a
-         (conj already-found Pk))
+         (conj already-found Pk)
+         distance)
       (if (< Pk-potential (* eps-lower P1-potential))
         already-found ; exiting
-        (if (>= (+ (/ (d-min Pk already-found) rad-a) (/ Pk-potential P1-potential)) 1)
+        (if (>= (+ (/ (d-min Pk already-found distance) rad-a) (/ Pk-potential P1-potential)) 1)
           (recur
-             (max-potential (revise-potentials potentials Pk coeff-b))
+             (max-potential (revise-potentials potentials Pk coeff-b distance))
              P1
-             (revise-potentials potentials Pk coeff-b)
+             (revise-potentials potentials Pk coeff-b distance)
              rad-a
-             (conj already-found Pk))
+             (conj already-found Pk)
+             distance)
           (recur
-             (max-potential (revise-potentials potentials Pk coeff-b))
+             (max-potential (revise-potentials potentials Pk coeff-b distance))
              P1
-             (revise-potentials potentials Pk coeff-b)
+             (revise-potentials potentials Pk coeff-b distance)
              rad-a
-             already-found))))))
+             already-found
+             distance))))))
 
 (defn estimate
-  [points rad-a]
+  [points rad-a distance]
   ;(println points)
   (let [coeff-b (coefficient (* 1.5 rad-a))
-        potentials (compute-potentials points (coefficient rad-a))
+        potentials (compute-potentials points (coefficient rad-a) distance)
         highest (first (max-potential potentials))
-        revised (revise-potentials potentials highest coeff-b)]
+        revised (revise-potentials potentials highest coeff-b distance)]
         (do-estimation
           (max-potential revised)
           highest
           revised
           rad-a
-          [highest])
+          [highest]
+          distance)
         ))
 
 (defn record
@@ -127,19 +135,20 @@
   (doall (map #(println (peek (first %)) (first (first %)) (peek %)) centers)))
 
 (defn run-estimation
-  []
+  [distance-algorithm]
+  (let [distance (if (= "e" distance-algorithm) euclidean-distance hamming-distance)]
   (println "Cluster estimation was started...")
   (if-not (io/resource "bezdekIris.data.txt")
     (println "File 'bezdekIris.data.txt' wasn't found")
     (print-result
       "bezdekIris.data.txt"
-      (estimate (get-data (io/resource "bezdekIris.data.txt") (range 4) 4) 1.5)))
+      (estimate (get-data (io/resource "bezdekIris.data.txt") (range 4) 4) 1.5 distance)))
                                                                           ; ^  rad-a
                                                                           ; |
   (if-not (io/resource "glass.data.txt")
     (println "File 'glass.data.txt' wasn't found")
     (print-result
       "glass.data.txt"              ;1 2 3 5 6 7 - claster labels for glass.data.txt
-      (estimate (get-data (io/resource "glass.data.txt") (range 1 10) 10) 0.76))))
+      (estimate (get-data (io/resource "glass.data.txt") (range 1 10) 10) 0.76 distance)))))
                                                                          ; ^  rad-a
                                                                          ; |

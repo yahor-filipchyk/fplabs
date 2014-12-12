@@ -1,0 +1,2 @@
+http://clojure.org/
+http://www.bsuir.by/
