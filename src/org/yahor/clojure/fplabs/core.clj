@@ -3,9 +3,6 @@
   (:require [org.yahor.clojure.fplabs.clusterization.estimation :as estimation]
             [org.yahor.clojure.fplabs.crawling.crawler :as crawler]))
 
-;(require 'org.yahor.clojure.fplabs.clusterization.estimation)
-;(refer 'org.yahor.clojure.fplabs.clusterization.estimation)
-
 (defn -main
   [& args]
   (if-not (first args)
